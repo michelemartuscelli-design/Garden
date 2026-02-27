@@ -211,13 +211,19 @@ gap:12px;
 /* Seasonal banner */
 .seasonal-banner{margin:0 24px 20px;}
 
-/* Detail panel: slide from right as panel, not fullscreen */
+/* Detail panel: covers content area only (not sidebar) */
 .detail-view{
-width:min(500px, 50vw);
-left:auto;
+left:var(–sidebar-w);
 right:0;
-border-left:.5px solid var(–separator);
-box-shadow:-8px 0 32px rgba(0,0,0,0.08);
+top:0;
+bottom:0;
+width:auto;
+border-left:none;
+box-shadow:-8px 0 40px rgba(0,0,0,0.15);
+}
+.detail-nav{
+height:56px;
+padding-top:0;
 }
 
 /* Sheets centered on iPad */
@@ -406,7 +412,7 @@ textarea.form-ctrl{min-height:80px;resize:none;}
 @media(min-width:768px){#toast{bottom:40px;}}
 
 /* QUICK LOG */
-.quick-log-overlay{position:fixed;inset:0;z-index:500;pointer-events:none;display:flex;align-items:center;justify-content:center;}
+.quick-log-overlay{position:fixed;inset:0;z-index:600;pointer-events:none;display:flex;align-items:center;justify-content:center;}
 .quick-log-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .25s ease;}
 .quick-log-overlay.open{pointer-events:all;}
 .quick-log-overlay.open .quick-log-backdrop{background:rgba(0,0,0,.5);}
