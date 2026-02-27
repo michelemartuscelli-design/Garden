@@ -75,7 +75,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;height:100%;overfl
 
 /* ═══ RESPONSIVE: iPad / Desktop (≥768px) ═══ */
 @media (min-width: 768px) {
-body{overflow:auto;}
+body{overflow:hidden;}
 
 #app{
 position:fixed;inset:0;
@@ -84,14 +84,15 @@ max-width:none;
 margin:0;
 }
 
-/* Top nav bar full width on iPad */
+/* Top nav bar: sits above sidebar+content */
 .nav-bar{
 width:100%;
-padding-left:calc(var(–sidebar-w) + 16px);
+padding-left:24px;
 padding-right:24px;
 background:rgba(242,242,247,0.95);
 backdrop-filter:blur(20px);
 z-index:100;
+border-bottom:.5px solid var(–separator);
 }
 
 .nav-title{
@@ -99,9 +100,9 @@ position:relative;
 left:auto;
 transform:none;
 opacity:1 !important;
-font-size:20px;
-font-weight:800;
-letter-spacing:-.5px;
+font-size:18px;
+font-weight:700;
+letter-spacing:-.4px;
 }
 
 /* Hide mobile tab bar */
@@ -113,7 +114,7 @@ display:flex;
 flex-direction:column;
 width:var(–sidebar-w);
 flex-shrink:0;
-background:rgba(255,255,255,0.7);
+background:rgba(248,248,248,0.95);
 backdrop-filter:blur(20px);
 -webkit-backdrop-filter:blur(20px);
 border-right:.5px solid var(–separator);
@@ -171,99 +172,63 @@ transition:background .15s ease;
 flex:1;
 display:flex;
 overflow:hidden;
+min-height:0;
 }
 
-/* Main content area */
+/* Main content area — full width after sidebar, NO max-width cap */
 .scroll-area{
 flex:1;
 padding-bottom:32px;
 background:var(–bg);
+min-width:0;
 }
 
-/* Grid layouts for cards */
-#piante-list{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-gap:0;
-padding:0;
-}
-
-#piante-list .plant-card{
-margin:0 0 0 0;
-}
-
-.plants-grid-wrap{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-gap:12px;
-padding:0 20px 24px;
-}
-
-#journal-list,#knowledge-list,#prodotti-list{
-padding:0 20px;
-}
-
-/* FAB repositioned */
+/* FAB: bigger and more visible */
 .fab{
 bottom:32px;
 right:32px;
+width:64px;
+height:64px;
+font-size:32px;
+box-shadow:0 6px 24px rgba(52,199,89,.55);
 }
 
-/* Nav buttons hidden (moved to sidebar) */
+/* Hide settings btn from nav (it’s in sidebar footer) */
 .nav-btn.gray#btn-settings{display:none;}
 
-/* Search button stays */
-.nav-right{gap:8px;}
-
 /* Large title bigger on iPad */
-.large-title{font-size:40px;}
-.large-title-wrap{padding:12px 24px 16px;}
+.large-title{font-size:38px;}
+.large-title-wrap{padding:16px 24px 16px;}
+
+/* Stat row: fix so all 3 fit, no overflow */
+.stat-row{
+grid-template-columns:repeat(3,1fr);
+margin:0 24px 20px;
+gap:12px;
+}
+.stat-num{font-size:24px;}
+
+/* Seasonal banner */
+.seasonal-banner{margin:0 24px 20px;}
 
 /* Detail panel: slide from right as panel, not fullscreen */
 .detail-view{
-width:min(520px, 55vw);
+width:min(500px, 50vw);
 left:auto;
 right:0;
 border-left:.5px solid var(–separator);
 box-shadow:-8px 0 32px rgba(0,0,0,0.08);
 }
 
-/* Sheets wider on iPad */
+/* Sheets centered on iPad */
 .sheet-overlay{max-width:none;}
 .sheet{
-max-width:560px;
+max-width:600px;
 margin:0 auto;
 border-radius:20px 20px 0 0;
 }
 
-/* Stat row */
-.stat-row{
-grid-template-columns:repeat(3,1fr);
-margin:0 24px 24px;
-}
-
-/* Seasonal banner */
-.seasonal-banner{margin:0 24px 20px;}
-
-/* Journal cards 2 col */
-#journal-list{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-gap:10px;
-padding:0 20px 24px;
-}
-.journal-card{margin:0;}
-
-/* Knowledge cards 2 col */
-#knowledge-list{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-gap:10px;
-padding:0 20px 24px;
-}
-.k-card{margin:0;}
-
-/* Month strip more padding */
+/* Month strip / seg */
 .month-strip{padding:4px 24px 12px;}
 .seg-wrap{padding:0 24px 10px;}
 #calendario-list{padding:0 24px;}
@@ -915,10 +880,10 @@ async function authSubmit(){
       btn.textContent='Registrati';btn.disabled=false;return;
     }
     authToken=data.access_token;currentUser=data.user;
-    const emailDisplay=email;
+    saveSession(authToken,currentUser,email);
     document.getElementById('auth-screen').style.display='none';
-    document.getElementById('settings-email').textContent=emailDisplay;
-    document.getElementById('sidebar-email-label').textContent=emailDisplay;
+    document.getElementById('settings-email').textContent=email;
+    document.getElementById('sidebar-email-label').textContent=email;
     errEl.style.color='';showApp();
   }catch(e){
     errEl.textContent='⚠️ Errore di rete: '+e.message;
@@ -934,6 +899,7 @@ function toggleAuthMode(){
 }
 function signOut(){
   authToken=null;currentUser=null;plants=[];journal=[];knowledge=[];prodotti=[];calendario=[];
+  clearSession();
   document.getElementById('app').style.display='none';document.getElementById('fab').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('auth-email').value='';document.getElementById('auth-pass').value='';
@@ -1135,10 +1101,26 @@ window.addEventListener('resize',()=>renderAll());
 const mf={name:'Garden',short_name:'Garden',start_url:'./',display:'standalone',background_color:'#F2F2F7',theme_color:'#34C759',orientation:'portrait',icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='44' fill='%2334C759'/%3E%3Ctext y='140' x='28' font-size='128'%3E🌿%3C/text%3E%3C/svg%3E",sizes:'192x192',type:'image/svg+xml',purpose:'any maskable'}]};
 document.getElementById('manifest-link').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));
 
+// ═══ PERSISTENT LOGIN ═══
+function saveSession(token,user,email){try{localStorage.setItem('garden_token',token);localStorage.setItem('garden_user',JSON.stringify(user));localStorage.setItem('garden_email',email);}catch(e){}}
+function clearSession(){try{localStorage.removeItem('garden_token');localStorage.removeItem('garden_user');localStorage.removeItem('garden_email');}catch(e){}}
+function loadSession(){try{const token=localStorage.getItem('garden_token');const user=JSON.parse(localStorage.getItem('garden_user')||'null');const email=localStorage.getItem('garden_email')||'';return token&&user?{token,user,email}:null;}catch(e){return null;}}
+
 window.addEventListener('DOMContentLoaded',()=>{
   setTimeout(()=>{
     document.getElementById('splash').classList.add('out');
-    setTimeout(()=>{document.getElementById('splash').remove();document.getElementById('auth-screen').style.display='flex';},500);
+    setTimeout(async()=>{
+      document.getElementById('splash').remove();
+      const session=loadSession();
+      if(session){
+        authToken=session.token;currentUser=session.user;
+        document.getElementById('settings-email').textContent=session.email;
+        document.getElementById('sidebar-email-label').textContent=session.email;
+        await showApp();
+      }else{
+        document.getElementById('auth-screen').style.display='flex';
+      }
+    },500);
   },1200);
 });
 document.getElementById('auth-pass').addEventListener('keydown',e=>{if(e.key==='Enter')authSubmit();});
