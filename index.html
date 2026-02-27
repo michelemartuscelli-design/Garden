@@ -211,19 +211,20 @@ gap:12px;
 /* Seasonal banner */
 .seasonal-banner{margin:0 24px 20px;}
 
-/* Detail panel: covers content area only (not sidebar) */
+/* Detail panel: covers FULL screen including sidebar on iPad */
 .detail-view{
-left:var(–sidebar-w);
+left:0;
 right:0;
 top:0;
 bottom:0;
-width:auto;
+width:100%;
 border-left:none;
-box-shadow:-8px 0 40px rgba(0,0,0,0.15);
+box-shadow:none;
+z-index:400;
 }
 .detail-nav{
-height:56px;
-padding-top:0;
+height:calc(56px + env(safe-area-inset-top,0px));
+padding-top:env(safe-area-inset-top,0px);
 }
 
 /* Sheets centered on iPad */
